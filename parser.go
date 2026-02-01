@@ -7,18 +7,11 @@ import (
 	"github.com/mmcdole/gofeed/rss"
 )
 
-type Parser struct {
-	RSSParser *rss.Parser
-}
+type Parser struct{}
 
-func NewParser() *Parser {
-	return &Parser{
-		RSSParser: &rss.Parser{},
-	}
-}
-
-func (p *Parser) Parse(feed io.Reader) (*rss.Feed, error) {
-	r, err := p.RSSParser.Parse(feed)
+func (p *Parser) Parse(data io.Reader) (*rss.Feed, error) {
+	rssParser := &rss.Parser{}
+	r, err := rssParser.Parse(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse RSS: %w", err)
 	}

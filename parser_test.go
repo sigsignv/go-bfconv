@@ -10,7 +10,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
-	p := NewParser()
+	p := &Parser{}
 
 	t.Run("sample rss", func(t *testing.T) {
 		file, err := os.Open("testdata/sample.rss")

@@ -17,7 +17,7 @@ func TestTranslate(t *testing.T) {
 		}
 		defer file.Close()
 
-		p := NewParser()
+		p := &Parser{}
 		r, err := p.Parse(file)
 		if err != nil {
 			t.Skipf("Parse failed: %v", err)
