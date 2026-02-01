@@ -1,6 +1,6 @@
-module github.com/sigsignv/bookmark-to-json-feed
+module github.com/sigsignv/go-efeed
 
-go 1.24.12
+go 1.24.0
 
 require github.com/mmcdole/gofeed v1.3.0
 
