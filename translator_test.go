@@ -63,6 +63,15 @@ func TestTranslate(t *testing.T) {
 		if len(item0.Tags) != 3 || item0.Tags[0] != "Technology" || item0.Tags[1] != "Go" || item0.Tags[2] != "Programming" {
 			t.Errorf("item[0].tags mismatch: got %v", item0.Tags)
 		}
+		if item0.BookmarkExt.Count != 42 {
+			t.Errorf("item[0].BookmarkExt.Count mismatch: got %d", item0.BookmarkExt.Count)
+		}
+		if item0.BookmarkExt.CommentListPageURL != "https://b.hatena.ne.jp/entry/s/example.com/article/1" {
+			t.Errorf("item[0].BookmarkExt.CommentPageURL mismatch: got %s", item0.BookmarkExt.CommentListPageURL)
+		}
+		if item0.BookmarkExt.SiteEntriesListURL != "https://b.hatena.ne.jp/site/example.com/" {
+			t.Errorf("item[0].BookmarkExt.SiteEntriesURL mismatch: got %s", item0.BookmarkExt.SiteEntriesListURL)
+		}
 
 		item1 := feed.Items[1]
 		if item1.Title != "Example Article Title Two" {
@@ -83,6 +92,15 @@ func TestTranslate(t *testing.T) {
 		if len(item1.Tags) != 0 {
 			t.Errorf("item[1].tags mismatch: got %v", item1.Tags)
 		}
+		if item1.BookmarkExt.Count != 15 {
+			t.Errorf("item[1].BookmarkExt.Count mismatch: got %d", item1.BookmarkExt.Count)
+		}
+		if item1.BookmarkExt.CommentListPageURL != "https://b.hatena.ne.jp/entry/s/example.com/article/2" {
+			t.Errorf("item[1].BookmarkExt.CommentPageURL mismatch: got %s", item1.BookmarkExt.CommentListPageURL)
+		}
+		if item1.BookmarkExt.SiteEntriesListURL != "https://b.hatena.ne.jp/site/example.com/" {
+			t.Errorf("item[1].BookmarkExt.SiteEntriesURL mismatch: got %s", item1.BookmarkExt.SiteEntriesListURL)
+		}
 
 		item2 := feed.Items[2]
 		if item2.Title != "Article Without Image" {
@@ -102,6 +120,15 @@ func TestTranslate(t *testing.T) {
 		}
 		if len(item2.Tags) != 1 || item2.Tags[0] != "Test" {
 			t.Errorf("item[2].tags mismatch: got %v", item2.Tags)
+		}
+		if item2.BookmarkExt.Count != 3 {
+			t.Errorf("item[2].BookmarkExt.Count mismatch: got %d", item2.BookmarkExt.Count)
+		}
+		if item2.BookmarkExt.CommentListPageURL != "https://b.hatena.ne.jp/entry/s/example.com/article/3" {
+			t.Errorf("item[2].BookmarkExt.CommentPageURL mismatch: got %s", item2.BookmarkExt.CommentListPageURL)
+		}
+		if item2.BookmarkExt.SiteEntriesListURL != "https://b.hatena.ne.jp/site/example.com/" {
+			t.Errorf("item[2].BookmarkExt.SiteEntriesURL mismatch: got %s", item2.BookmarkExt.SiteEntriesListURL)
 		}
 	})
 

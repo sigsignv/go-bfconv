@@ -37,7 +37,13 @@ func (t *Translator) Translate(rss *rss.Feed) (*Feed, error) {
 		item.Image = t.translateItemImage(r)
 		item.DatePublished = t.translateItemDatePublished(r)
 		item.Tags = t.translateItemTags(r)
-		item.BookmarkExt = nil // Todo: extract bookmark extension
+
+		bookmarkExt := &BookmarkExtension{}
+		bookmarkExt.Count = t.translateBookmarkCount(r)
+		bookmarkExt.CommentListPageURL = t.translateBookmarkCommentListPageURL(r)
+		bookmarkExt.SiteEntriesListURL = t.translateBookmarkSiteEntriesListURL(r)
+
+		item.BookmarkExt = bookmarkExt
 
 		items = append(items, item)
 	}
@@ -81,6 +87,37 @@ func (t *Translator) translateItemTags(rssItem *rss.Item) []string {
 	}
 
 	return tags
+}
+
+func (t *Translator) translateBookmarkCount(rssItem *rss.Item) int {
+	counts := t.extractExtension(rssItem, "hatena", "bookmarkcount")
+	if len(counts) == 0 {
+		return 0
+	}
+
+	var n int
+	fmt.Sscanf(counts[0].Value, "%d", &n)
+	return n
+}
+
+func (t *Translator) translateBookmarkCommentListPageURL(rssItem *rss.Item) string {
+	URLs := t.extractExtension(rssItem, "hatena", "bookmarkCommentListPageUrl")
+	if len(URLs) == 0 {
+		return ""
+	}
+
+	url := URLs[0].Value
+	return url
+}
+
+func (t *Translator) translateBookmarkSiteEntriesListURL(rssItem *rss.Item) string {
+	URLs := t.extractExtension(rssItem, "hatena", "bookmarkSiteEntriesListUrl")
+	if len(URLs) == 0 {
+		return ""
+	}
+
+	url := URLs[0].Value
+	return url
 }
 
 func (t *Translator) extractExtension(rssItem *rss.Item, ns string, name string) []ext.Extension {

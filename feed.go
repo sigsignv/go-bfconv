@@ -23,7 +23,7 @@ type Item struct {
 
 // BookmarkExtension holds Hatena Bookmark specific extension data.
 type BookmarkExtension struct {
-	BookmarkCount          int    `json:"count,omitempty"`
-	BookmarkCommentPageURL string `json:"comment_page_url,omitempty"`
-	BookmarkSiteEntriesURL string `json:"site_entries_url,omitempty"`
+	Count              int    `json:"count,omitempty"`
+	CommentListPageURL string `json:"comment_list_page_url,omitempty"`
+	SiteEntriesListURL string `json:"site_entries_list_url,omitempty"`
 }
