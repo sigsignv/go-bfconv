@@ -54,8 +54,14 @@ func TestTranslate(t *testing.T) {
 		if item0.ContentText != "This is the summary of the first article about technology." {
 			t.Errorf("item[0].content_text mismatch: got %s", item0.ContentText)
 		}
+		if item0.Image != "https://example.com/image1.jpg" {
+			t.Errorf("item[0].image mismatch: got %s", item0.Image)
+		}
 		if item0.DatePublished != "2026-01-30T10:15:00Z" {
 			t.Errorf("item[0].date_published mismatch: got %s", item0.DatePublished)
+		}
+		if len(item0.Tags) != 3 || item0.Tags[0] != "Technology" || item0.Tags[1] != "Go" || item0.Tags[2] != "Programming" {
+			t.Errorf("item[0].tags mismatch: got %v", item0.Tags)
 		}
 
 		item1 := feed.Items[1]
@@ -68,8 +74,14 @@ func TestTranslate(t *testing.T) {
 		if item1.ContentText != "" {
 			t.Errorf("item[1].content_text mismatch: got %s", item1.ContentText)
 		}
+		if item1.Image != "https://example.com/image2.jpg" {
+			t.Errorf("item[1].image mismatch: got %s", item1.Image)
+		}
 		if item1.DatePublished != "2026-01-29T15:30:00Z" {
 			t.Errorf("item[1].date_published mismatch: got %s", item1.DatePublished)
+		}
+		if len(item1.Tags) != 0 {
+			t.Errorf("item[1].tags mismatch: got %v", item1.Tags)
 		}
 
 		item2 := feed.Items[2]
@@ -82,8 +94,14 @@ func TestTranslate(t *testing.T) {
 		if item2.ContentText != "This article has no image URL." {
 			t.Errorf("item[2].content_text mismatch: got %s", item2.ContentText)
 		}
+		if item2.Image != "" {
+			t.Errorf("item[2].image mismatch: got %s", item2.Image)
+		}
 		if item2.DatePublished != "2026-01-28T08:00:00Z" {
 			t.Errorf("item[2].date_published mismatch: got %s", item2.DatePublished)
+		}
+		if len(item2.Tags) != 1 || item2.Tags[0] != "Test" {
+			t.Errorf("item[2].tags mismatch: got %v", item2.Tags)
 		}
 	})
 

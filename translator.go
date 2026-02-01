@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	ext "github.com/mmcdole/gofeed/extensions"
 	"github.com/mmcdole/gofeed/rss"
 )
 
@@ -33,9 +34,9 @@ func (t *Translator) Translate(rss *rss.Feed) (*Feed, error) {
 		item.URL = r.Link
 		item.Title = r.Title
 		item.ContentText = r.Description
-		item.Image = "" // Todo: extract image if available
+		item.Image = t.translateItemImage(r)
 		item.DatePublished = t.translateItemDatePublished(r)
-		item.Tags = []string{} // Todo: extract tags if available
+		item.Tags = t.translateItemTags(r)
 		item.BookmarkExt = nil // Todo: extract bookmark extension
 
 		items = append(items, item)
@@ -56,4 +57,46 @@ func (t *Translator) translateItemDatePublished(rssItem *rss.Item) string {
 	}
 
 	return ""
+}
+
+func (t *Translator) translateItemImage(rssItem *rss.Item) string {
+	imageURLs := t.extractExtension(rssItem, "hatena", "imageurl")
+	if len(imageURLs) == 0 {
+		return ""
+	}
+
+	image := imageURLs[0].Value
+	return image
+}
+
+func (t *Translator) translateItemTags(rssItem *rss.Item) []string {
+	subjects := t.extractExtension(rssItem, "dc", "subject")
+	if len(subjects) == 0 {
+		return []string{}
+	}
+
+	tags := make([]string, 0, len(subjects))
+	for _, s := range subjects {
+		tags = append(tags, s.Value)
+	}
+
+	return tags
+}
+
+func (t *Translator) extractExtension(rssItem *rss.Item, ns string, name string) []ext.Extension {
+	if rssItem == nil || len(rssItem.Extensions) == 0 {
+		return nil
+	}
+
+	elms, ok := rssItem.Extensions[ns]
+	if !ok || len(elms) == 0 {
+		return nil
+	}
+
+	items, ok := elms[name]
+	if !ok || len(items) == 0 {
+		return nil
+	}
+
+	return items
 }
