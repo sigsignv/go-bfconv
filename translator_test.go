@@ -1,0 +1,109 @@
+package tojsonfeed
+
+import (
+	"os"
+	"testing"
+
+	"github.com/mmcdole/gofeed/rss"
+)
+
+func TestTranslate(t *testing.T) {
+	tr := &Translator{}
+
+	t.Run("translate sample RSS feed", func(t *testing.T) {
+		file, err := os.Open("testdata/sample.rss")
+		if err != nil {
+			t.Skipf("failed to open sample.rss: %v", err)
+		}
+		defer file.Close()
+
+		p := NewParser()
+		r, err := p.Parse(file)
+		if err != nil {
+			t.Skipf("Parse failed: %v", err)
+		}
+
+		feed, err := tr.Translate(r)
+		if err != nil {
+			t.Fatalf("Translate failed: %v", err)
+		}
+
+		if feed.Title != "Sample Hatena Bookmark Feed" {
+			t.Errorf("feed title mismatch: got %s", feed.Title)
+		}
+
+		if feed.HomePageURL != "https://b.hatena.ne.jp/entrylist/all" {
+			t.Errorf("feed home_page_url mismatch: got %s", feed.HomePageURL)
+		}
+
+		if feed.Description != "Sample entries for testing" {
+			t.Errorf("feed description mismatch: got %s", feed.Description)
+		}
+
+		if len(feed.Items) != 3 {
+			t.Fatalf("items: expected 3, got %d", len(feed.Items))
+		}
+
+		item0 := feed.Items[0]
+		if item0.Title != "Example Article Title One" {
+			t.Errorf("item[0].title mismatch: got %s", item0.Title)
+		}
+		if item0.URL != "https://example.com/article/1" {
+			t.Errorf("item[0].url mismatch: got %s", item0.URL)
+		}
+		if item0.ContentText != "This is the summary of the first article about technology." {
+			t.Errorf("item[0].content_text mismatch: got %s", item0.ContentText)
+		}
+		if item0.DatePublished != "2026-01-30T10:15:00Z" {
+			t.Errorf("item[0].date_published mismatch: got %s", item0.DatePublished)
+		}
+
+		item1 := feed.Items[1]
+		if item1.Title != "Example Article Title Two" {
+			t.Errorf("item[1].title mismatch: got %s", item1.Title)
+		}
+		if item1.URL != "https://example.com/article/2" {
+			t.Errorf("item[1].url mismatch: got %s", item1.URL)
+		}
+		if item1.ContentText != "" {
+			t.Errorf("item[1].content_text mismatch: got %s", item1.ContentText)
+		}
+		if item1.DatePublished != "2026-01-29T15:30:00Z" {
+			t.Errorf("item[1].date_published mismatch: got %s", item1.DatePublished)
+		}
+
+		item2 := feed.Items[2]
+		if item2.Title != "Article Without Image" {
+			t.Errorf("item[2].title mismatch: got %s", item2.Title)
+		}
+		if item2.URL != "https://example.com/article/3" {
+			t.Errorf("item[2].url mismatch: got %s", item2.URL)
+		}
+		if item2.ContentText != "This article has no image URL." {
+			t.Errorf("item[2].content_text mismatch: got %s", item2.ContentText)
+		}
+		if item2.DatePublished != "2026-01-28T08:00:00Z" {
+			t.Errorf("item[2].date_published mismatch: got %s", item2.DatePublished)
+		}
+	})
+
+	t.Run("should error if feed is nil", func(t *testing.T) {
+		if _, err := tr.Translate(nil); err == nil {
+			t.Fatalf("expected error for nil feed")
+		}
+	})
+
+	t.Run("should skip if item is nil", func(t *testing.T) {
+		rss := &rss.Feed{
+			Title: "Test Feed",
+			Items: []*rss.Item{nil},
+		}
+		feed, err := tr.Translate(rss)
+		if err != nil {
+			t.Fatalf("Translate failed: %v", err)
+		}
+		if len(feed.Items) != 0 {
+			t.Fatalf("expected 0 items, got %d", len(feed.Items))
+		}
+	})
+}
