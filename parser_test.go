@@ -1,7 +1,6 @@
 package bfconv
 
 import (
-	"bytes"
 	"net/http"
 	"os"
 	"strings"
@@ -12,37 +11,60 @@ import (
 func TestParse(t *testing.T) {
 	p := &Parser{}
 
-	t.Run("sample rss", func(t *testing.T) {
+	t.Run("parses minimal RSS", func(t *testing.T) {
+		file, err := os.Open("testdata/minimal.rss")
+		if err != nil {
+			t.Fatalf("failed to open minimal.rss: %v", err)
+		}
+		defer file.Close()
+
+		rss, err := p.Parse(file)
+		if err != nil {
+			t.Fatalf("Parse failed: %v", err)
+		}
+
+		if rss.Link != "https://example.com/alice/bookmark" {
+			t.Errorf("feed link mismatch: got %q", rss.Link)
+		}
+	})
+
+	t.Run("parses sample RSS", func(t *testing.T) {
 		file, err := os.Open("testdata/sample.rss")
 		if err != nil {
 			t.Fatalf("failed to open sample.rss: %v", err)
 		}
 		defer file.Close()
 
-		r, err := p.Parse(file)
+		rss, err := p.Parse(file)
 		if err != nil {
 			t.Fatalf("Parse failed: %v", err)
 		}
 
-		if !strings.HasPrefix(r.Link, "https://b.hatena.ne.jp/") {
-			t.Errorf("feed link mismatch: got %q", r.Link)
+		if !strings.HasPrefix(rss.Link, "https://b.hatena.ne.jp/") {
+			t.Errorf("feed link mismatch: got %q", rss.Link)
 		}
 
-		if len(r.Items) != 3 {
-			t.Fatalf("expected 3 items, got %d", len(r.Items))
+		if len(rss.Items) != 3 {
+			t.Errorf("expected 3 items, got %d", len(rss.Items))
 		}
 	})
 
-	t.Run("invalid input", func(t *testing.T) {
-		_, err := p.Parse(bytes.NewReader([]byte("invalid RSS data")))
+	t.Run("fails on invalid RSS", func(t *testing.T) {
+		file, err := os.Open("testdata/invalid.rss")
+		if err != nil {
+			t.Fatalf("failed to open invalid.rss: %v", err)
+		}
+		defer file.Close()
+
+		_, err = p.Parse(file)
 		if err == nil {
-			t.Fatalf("expected error for invalid RSS, got nil")
+			t.Fatalf("expected error, got nil")
 		}
 	})
 
-	t.Run("real feeds", func(t *testing.T) {
+	t.Run("parses live RSS feeds", func(t *testing.T) {
 		if testing.Short() {
-			t.Skip("skipping live feed test in short mode")
+			t.Skip("skipping live RSS feed tests")
 		}
 
 		urls := []string{
@@ -57,7 +79,6 @@ func TestParse(t *testing.T) {
 			t.Run(u, func(t *testing.T) {
 				resp, err := client.Get(u)
 				if err != nil {
-					// Skip on network errors so CI without network doesn't fail the test suite.
 					t.Skipf("skipping fetch %s due to network error: %v", u, err)
 				}
 				defer resp.Body.Close()
