@@ -1,4 +1,4 @@
-package tojsonfeed
+package bfconv
 
 import (
 	"bytes"

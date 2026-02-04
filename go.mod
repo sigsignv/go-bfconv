@@ -1,4 +1,4 @@
-module github.com/sigsignv/go-efeed
+module github.com/sigsignv/bfconv
 
 go 1.24.0
 

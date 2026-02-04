@@ -1,6 +1,6 @@
-# Entrylist RSS to JSON Feed
+# Bookmark Feed Converter
 
-A Go library that converts Hatena Bookmark Entrylist RSS feeds to the JSON Feed v1.1 format. 
+A Go library that converts Hatena Bookmark RSS feeds to the JSON Feed v1.1 format.
 
 ## Author
 

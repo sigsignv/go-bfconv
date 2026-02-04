@@ -1,4 +1,4 @@
-package tojsonfeed
+package bfconv
 
 // See also: https://jsonfeed.org/version/1.1/
 type Feed struct {
