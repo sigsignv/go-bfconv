@@ -33,17 +33,17 @@ func NewHandler() *Handler {
 func (h *Handler) Handle(ctx context.Context, req Request) (*Response, error) {
 	method := req.RequestContext.HTTP.Method
 	if method != http.MethodGet && method != http.MethodHead {
-		return h.errorResponse(http.StatusMethodNotAllowed, "Method Not Allowed"), nil
+		return h.errorResponse(http.StatusMethodNotAllowed, "Method Not Allowed")
 	}
 
 	origPath := strings.TrimSpace(req.RawPath)
 	if origPath == "/" {
-		return h.descriptionResponse(), nil
+		return h.descriptionResponse()
 	}
 
 	path, err := h.buildPath(origPath)
 	if err != nil {
-		return h.errorResponse(http.StatusBadRequest, fmt.Sprintf("Bad Request: %v", err)), nil
+		return h.errorResponse(http.StatusBadRequest, fmt.Sprintf("Bad Request: %v", err))
 	}
 
 	url, err := url.Parse("https://b.hatena.ne.jp/")
@@ -57,12 +57,12 @@ func (h *Handler) Handle(ctx context.Context, req Request) (*Response, error) {
 	if err != nil {
 		return h.errorResponse(
 			http.StatusInternalServerError,
-			fmt.Sprintf("failed to fetch feed: %v", err)), nil
+			fmt.Sprintf("failed to fetch feed: %v", err))
 	}
 
 	payload, err := json.Marshal(feed)
 	if err != nil {
-		return h.errorResponse(http.StatusInternalServerError, "failed to encode feed"), nil
+		return h.errorResponse(http.StatusInternalServerError, "failed to encode feed")
 	}
 
 	return h.jsonResponse(http.StatusOK, string(payload)), nil
@@ -109,7 +109,7 @@ func (h *Handler) request(ctx context.Context, url string) (*bfconv.Feed, error)
 	return feed, nil
 }
 
-func (h *Handler) descriptionResponse() *Response {
+func (h *Handler) descriptionResponse() (*Response, error) {
 	payload, err := json.Marshal(map[string]string{
 		"name":        "bfconv-lambda",
 		"description": "bfconv-lambda is a converter that transforms Hatena Bookmark RSS feeds into JSON Feed format",
@@ -118,22 +118,19 @@ func (h *Handler) descriptionResponse() *Response {
 		"example":     "https://bfconv.signote.cc/entrylist.json",
 	})
 	if err != nil {
-		return h.errorResponse(http.StatusInternalServerError, "failed to description encode")
+		return nil, fmt.Errorf("failed to encode description: %w", err)
 	}
 
-	return h.jsonResponse(http.StatusOK, string(payload))
+	return h.jsonResponse(http.StatusOK, string(payload)), nil
 }
 
-func (h *Handler) errorResponse(status int, message string) *Response {
+func (h *Handler) errorResponse(status int, message string) (*Response, error) {
 	payload, err := json.Marshal(map[string]string{"error": message})
 	if err != nil {
-		return h.jsonResponse(
-			http.StatusInternalServerError,
-			`{"error": "Internal Server Error"}`,
-		)
+		return nil, fmt.Errorf("failed to encode error message: %w", err)
 	}
 
-	return h.jsonResponse(status, string(payload))
+	return h.jsonResponse(status, string(payload)), nil
 }
 
 func (h *Handler) jsonResponse(status int, payload string) *Response {
