@@ -36,20 +36,21 @@ func (h *Handler) Handle(ctx context.Context, req Request) (*Response, error) {
 		return h.errorResponse(http.StatusMethodNotAllowed, "Method Not Allowed"), nil
 	}
 
-	path := strings.TrimSpace(req.RawPath)
-	if !h.isValidPath(path) {
-		return h.errorResponse(http.StatusBadRequest, "Bad Request"), nil
+	origPath := strings.TrimSpace(req.RawPath)
+	if origPath == "/" {
+		return h.descriptionResponse(), nil
 	}
 
-	if path == "/" {
-		return h.descriptionResponse(), nil
+	path, err := h.buildPath(origPath)
+	if err != nil {
+		return h.errorResponse(http.StatusBadRequest, fmt.Sprintf("Bad Request: %v", err)), nil
 	}
 
 	url, err := url.Parse("https://b.hatena.ne.jp/")
 	if err != nil {
 		return nil, err
 	}
-	url.Path = h.buildPath(path)
+	url.Path = path
 	url.RawQuery = req.RawQueryString
 
 	feed, err := h.request(ctx, url.String())
@@ -68,20 +69,16 @@ func (h *Handler) Handle(ctx context.Context, req Request) (*Response, error) {
 
 }
 
-func (h *Handler) buildPath(path string) string {
+func (h *Handler) buildPath(path string) (string, error) {
 	if base, ok := strings.CutSuffix(path, ".json"); ok {
-		return base + ".rss"
+		return base + ".rss", nil
 	}
 
 	if base, ok := strings.CutSuffix(path, "/json"); ok {
-		return base + "/rss"
+		return base + "/rss", nil
 	}
 
-	return path
-}
-
-func (h *Handler) isValidPath(path string) bool {
-	return path == "/" || strings.HasSuffix(path, ".json") || strings.HasSuffix(path, "/json")
+	return "", fmt.Errorf("invalid path: %s", path)
 }
 
 func (h *Handler) request(ctx context.Context, url string) (*bfconv.Feed, error) {
