@@ -30,26 +30,29 @@ func NewHandler() *Handler {
 	}
 }
 
-func (h *Handler) Handle(ctx context.Context, req Request) (Response, error) {
+func (h *Handler) Handle(ctx context.Context, req Request) (*Response, error) {
 	method := req.RequestContext.HTTP.Method
 	if method != http.MethodGet && method != http.MethodHead {
 		return h.errorResponse(http.StatusMethodNotAllowed, "Method Not Allowed"), nil
 	}
 
 	path := strings.TrimSpace(req.RawPath)
-	if path == "" {
-		return h.errorResponse(http.StatusBadRequest, "Path is required"), nil
+	if !h.isValidPath(path) {
+		return h.errorResponse(http.StatusBadRequest, "Bad Request"), nil
 	}
+
 	if path == "/" {
 		return h.descriptionResponse(), nil
 	}
 
-	url, err := h.buildURL(path, req.RawQueryString)
+	url, err := url.Parse("https://b.hatena.ne.jp/")
 	if err != nil {
-		return h.errorResponse(http.StatusInternalServerError, "failed to build URL"), nil
+		return nil, err
 	}
+	url.Path = h.buildPath(path)
+	url.RawQuery = req.RawQueryString
 
-	feed, err := h.request(ctx, url)
+	feed, err := h.request(ctx, url.String())
 	if err != nil {
 		return h.errorResponse(
 			http.StatusInternalServerError,
@@ -65,16 +68,20 @@ func (h *Handler) Handle(ctx context.Context, req Request) (Response, error) {
 
 }
 
-func (h *Handler) buildURL(path string, query string) (string, error) {
-	url, err := url.Parse("https://b.hatena.ne.jp/")
-	if err != nil {
-		return "", err
+func (h *Handler) buildPath(path string) string {
+	if base, ok := strings.CutSuffix(path, ".json"); ok {
+		return base + ".rss"
 	}
 
-	url.Path = path
-	url.RawQuery = query
+	if base, ok := strings.CutSuffix(path, "/json"); ok {
+		return base + "/rss"
+	}
 
-	return url.String(), nil
+	return path
+}
+
+func (h *Handler) isValidPath(path string) bool {
+	return path == "/" || strings.HasSuffix(path, ".json") || strings.HasSuffix(path, "/json")
 }
 
 func (h *Handler) request(ctx context.Context, url string) (*bfconv.Feed, error) {
@@ -105,7 +112,7 @@ func (h *Handler) request(ctx context.Context, url string) (*bfconv.Feed, error)
 	return feed, nil
 }
 
-func (h *Handler) descriptionResponse() Response {
+func (h *Handler) descriptionResponse() *Response {
 	payload, err := json.Marshal(map[string]string{
 		"name":        "bfconv-lambda",
 		"description": "bfconv-lambda is a converter that transforms Hatena Bookmark RSS feeds into JSON Feed format",
@@ -120,7 +127,7 @@ func (h *Handler) descriptionResponse() Response {
 	return h.jsonResponse(http.StatusOK, string(payload))
 }
 
-func (h *Handler) errorResponse(status int, message string) Response {
+func (h *Handler) errorResponse(status int, message string) *Response {
 	payload, err := json.Marshal(map[string]string{"error": message})
 	if err != nil {
 		return h.jsonResponse(
@@ -132,12 +139,12 @@ func (h *Handler) errorResponse(status int, message string) Response {
 	return h.jsonResponse(status, string(payload))
 }
 
-func (h *Handler) jsonResponse(status int, payload string) Response {
+func (h *Handler) jsonResponse(status int, payload string) *Response {
 	headers := map[string]string{
 		"Content-Type": "application/json",
 	}
 
-	return Response{
+	return &Response{
 		StatusCode: status,
 		Headers:    headers,
 		Body:       payload,
